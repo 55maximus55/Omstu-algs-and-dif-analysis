@@ -17,18 +17,26 @@ public:
     // 1
     template<typename Iterator>
     static void quickSort(Iterator begin, Iterator end) {
-        if (Distance(begin, end) < 2) return;
+        if (Distance(begin, end) < 2)
+            return; // 1
         else {
-            int counterGrabbed = 1;
-            auto mainElem = prev(end);
-            auto iter = end;
-            for (advance(iter, -2); iter != prev(begin); --iter) {
-                if (*iter < *mainElem) ++counterGrabbed;
+            // (n-1)(2n-1) + 3
+            int counterGrabbed = 1; // 1
+            auto mainElem = prev(end); // 1
+            auto iter = end; // 1
+
+            // (n-1)(2n-1)
+            for (advance(iter, -2); iter != prev(begin); --iter) { // (n-1)
+                // 2n - 1
+                if (*iter < *mainElem)
+                    ++counterGrabbed; // 1
                 else {
-                    rotate(iter, counterGrabbed);
-                    --mainElem;
+                    rotate(iter, counterGrabbed); // 2n - 2
+                    --mainElem; // 1
                 }
             }
+
+
             quickSort(next(mainElem), end);
             quickSort(begin, mainElem);
         }
@@ -38,16 +46,17 @@ public:
     // 1
     template<typename Iterator>
     static void mergeSort(Iterator begin, Iterator end) {
-        size_t size = Distance(begin, end);
+        size_t size = Distance(begin, end); // n
         if(size < 2) return; else {
             vector<typename iterator_traits<Iterator>::value_type>
-                    vec1(begin, next(begin, size / 2)),
-                    vec2(next(begin, size / 2), end),
-                    mergedVec;
+                    vec1(begin, next(begin, size / 2)), // n/2
+                    vec2(next(begin, size / 2), end), // n/2
+                    mergedVec; // 1
+
             mergeSort(vec1.begin(), vec1.end());
             mergeSort(vec2.begin(), vec2.end());
 
-            Merge(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(), back_inserter(mergedVec));
+            Merge(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(), back_inserter(mergedVec)); //
             Copy(mergedVec.begin(), mergedVec.end(), begin);
         }
     }
@@ -155,38 +164,39 @@ private:
     }
 
     template<typename Iterator>
-    static void iter_swap(Iterator lhs, Iterator rhs) {
-        swap(*lhs, *rhs);
+    static void iter_swap(Iterator lhs, Iterator rhs) { // 3
+        swap(*lhs, *rhs); // 3
     }
 
     template<typename type>
-    static void swap(type &lhs, type &rhs) {
-        type temp = move(lhs);
-        lhs = move(rhs);
-        rhs = move(temp);
+    static void swap(type &lhs, type &rhs) { // 3
+        type temp = move(lhs); // 1
+        lhs = move(rhs); // 1
+        rhs = move(temp); // 1
     }
 
     template<typename Iterator>
-    static void rotate(Iterator begin, int grubbed) {
-        for (int i = 0; i < grubbed; ++i) {
-            iter_swap(begin, next(begin));
-            ++begin;
+    static void rotate(Iterator begin, int grubbed) { // 2(n-1)
+        for (int i = 0; i < grubbed; ++i) { // 2n-2
+            iter_swap(begin, next(begin)); // 1
+            ++begin; // 1
         }
     }
 
     template <typename Iterator>
-    static auto max(Iterator begin, Iterator end){
-        typename iterator_traits<Iterator>::value_type Max = *begin;
-        for(; begin != end; ++begin) {
-            if(Max < *begin) Max = *begin;
+    static auto max(Iterator begin, Iterator end){ // n + 1
+        typename iterator_traits<Iterator>::value_type Max = *begin; // 1
+        for(; begin != end; ++begin) { // n
+            if(Max < *begin)
+                Max = *begin; // 1
         }
         return Max;
     }
 
     template<typename inIterator, typename destIterator>
-    static auto Copy(inIterator lhs, inIterator rhs, destIterator destination) {
-        for(; lhs != rhs; ++destination, ++lhs) {
-            *destination = *lhs;
+    static auto Copy(inIterator lhs, inIterator rhs, destIterator destination) { // n
+        for(; lhs != rhs; ++destination, ++lhs) { // n
+            *destination = *lhs; // 1
         }
         return destination;
     }
@@ -194,28 +204,28 @@ private:
     template<typename fInIterator, typename sInIterator, typename destIterator>
     static void Merge(fInIterator flhs, fInIterator frhs,
                       sInIterator rlhs, sInIterator rrhs,
-                      destIterator destination){
-        for(;; ++destination) {
+                      destIterator destination){ // n
+        for(;; ++destination) { // n
             if(flhs == frhs) {
-                Copy(rlhs, rrhs, destination);
+                Copy(rlhs, rrhs, destination); // n
                 return;
-            }
-            if(rlhs == rrhs) {
-                Copy(flhs, frhs, destination);
+            } else
+            if(rlhs == rrhs) { // n
+                Copy(flhs, frhs, destination); // n
                 return;
-            }
-            if(*flhs < *rlhs){
-                *destination = *flhs;
-                ++flhs;
+            } else
+            if(*flhs < *rlhs){ // 2
+                *destination = *flhs; // 1
+                ++flhs; // 1
             } else {
-                *destination = *rlhs;
-                ++rlhs;
+                *destination = *rlhs; // 1
+                ++rlhs; // 1
             }
         }
     }
 
     template<typename Iterator>
-    static size_t Distance(Iterator begin, Iterator end) {
+    static size_t Distance(Iterator begin, Iterator end) { // n
         for(size_t i = 0;;++i, ++begin) {
             if(begin == end) return i;
         }
@@ -258,6 +268,11 @@ private:
             sorted.push_back(Head->value);
             if(Head->right != nullptr) readTree(Head->right);
         }
+       void deleteNode(Node* node) {
+            if(node->left != nullptr) deleteNode(node->left);
+            if(node->right != nullptr) deleteNode(node->right);
+            delete node;
+        }
     public:
         template<typename Iterator>
         Tree(Iterator begin, Iterator end){
@@ -266,6 +281,9 @@ private:
                 makeTree(begin, end);
                 readTree(head);
             }
+        }
+        ~Tree() {
+            deleteNode(head);
         }
         auto begin() const{ return sorted.begin();}
         auto end() const{ return sorted.end();}
@@ -304,35 +322,27 @@ ostream &operator<<(ostream &stream, const deque<type> &vec) {
 
 
 
-// test random shuffle: vector, list, deque, array
-#define Test(function){                                                                                             \
-        vector<int> V(100);                                                                                         \
-        iota(V.begin(), V.end(),1);                                                                                 \
-        \
-        auto Vresult = V;                                                                                           \
-        list<int> Lresult(V.begin(), V.end());                                                                      \
-        deque<int> Dresult(V.begin(), V.end());                                                                     \
-        int* arrayResult = new int[V.size()];                                                                       \
-        copy(V.begin(), V.end(), arrayResult);\
-        \
-        random_shuffle(V.begin(), V.end());                                                                         \
-        deque<int> D (V.begin(), V.end());                                                                          \
-        list<int> L(V.begin(), V.end());                                                                            \
-        int* array = new int[V.size()];                                                                             \
-        copy(V.begin(), V.end(), array);\
-        function(L.begin(), L.end());                                                                               \
-        function(V.begin(), V.end());                                                                               \
-        function(D.begin(), D.end());                                                                               \
-        function(array, array + V.size());\
-        cerr << #function << ": " <<(Lresult != L || Vresult != V || Dresult != D || vector<int>(array, array+V.size()) != vector<int>(arrayResult, arrayResult+V.size()) ? "fail" : "success" ) << endl;    \
+// тест рандомного набора символов длины 100 на различных контейнерах с bidir итераторами: vector, list, deque, array
+
+#define create(container, function) \
+{                                \
+vector<int> temp(100);                     \
+iota(temp.begin(), temp.end(), 1);         \
+container<int> result(100), shuffled(100); \
+result = {temp.begin(), temp.end()}; \
+random_shuffle(temp.begin(), temp.end());  \
+shuffled = {temp.begin(), temp.end()};     \
+function(shuffled.begin(), shuffled.end());\
+test &= shuffled == result;\
 }
 
-//#define TEST(function)                                                                                              \
-//{                                                                                                                   \
-//    auto start = steady_clock::now();                                                                               \
-//    Test(function);                                                                                                 \
-//    cerr << "   time is " << duration_cast<milliseconds>(steady_clock::now() - start).count() << endl;              \
-//}
+#define Test(function){ \
+        bool test = true; \
+        create(vector, function) \
+        create(deque, function)  \
+        create(list, function)   \
+        cerr << #function << ": " << (test ? "success" : "fail") << endl;\
+}
 
 
 int main() {
@@ -348,3 +358,4 @@ int main() {
 
     return 0;
 }
+
