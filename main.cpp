@@ -71,12 +71,13 @@ public:
     static void selectionSort(Iterator begin, Iterator end){
         if(distance(begin, end) < 2) return;
         else{
-            auto min = begin;
-            for(auto iter = begin; iter != end; ++iter){
-                if(*min > *iter) min = iter;
+            for (auto i = begin; i != prev(end); i++) {
+                auto min = i;
+                for (auto j = next(i); j != end; j++) {
+                    if(*min > *j) min = j;
+                }
+                iter_swap(i, min);
             }
-            if(min != begin) iter_swap(begin, min);
-            selectionSort(next(begin), end);
         }
     }
 
