@@ -47,11 +47,12 @@ public:
     template<typename Iterator>
     static void mergeSort(Iterator begin, Iterator end) {
         size_t size = Distance(begin, end); // n
-        if(size < 2) return; else {
+        if (size < 2) return;
+        else {
             vector<typename iterator_traits<Iterator>::value_type>
                     vec1(begin, next(begin, size / 2)), // n/2
-                    vec2(next(begin, size / 2), end), // n/2
-                    mergedVec; // 1
+            vec2(next(begin, size / 2), end), // n/2
+            mergedVec; // 1
 
             mergeSort(vec1.begin(), vec1.end());
             mergeSort(vec2.begin(), vec2.end());
@@ -77,13 +78,13 @@ public:
 
     // 2
     template<typename Iterator>
-    static void selectionSort(Iterator begin, Iterator end){
-        if(distance(begin, end) < 2) return;
-        else{
+    static void selectionSort(Iterator begin, Iterator end) {
+        if (distance(begin, end) < 2) return;
+        else {
             for (auto i = begin; i != prev(end); i++) {
                 auto min = i;
                 for (auto j = next(i); j != end; j++) {
-                    if(*min > *j) min = j;
+                    if (*min > *j) min = j;
                 }
                 iter_swap(i, min);
             }
@@ -101,17 +102,17 @@ public:
     template<typename Iterator>
     static void bucketSort(Iterator begin, Iterator end, int amount = 10) {
         typedef typename iterator_traits<Iterator>::value_type value_type;
-        vector<vector<value_type>> vec(amount+1);
+        vector<vector<value_type>> vec(amount + 1);
         amount = distance(begin, end) / amount;
-        for(auto iter = begin; iter != end; ++iter) {
-            vec[round(*iter/amount)].push_back(*iter);
+        for (auto iter = begin; iter != end; ++iter) {
+            vec[round(*iter / amount)].push_back(*iter);
         }
-        for(auto i = 0; i<vec.size(); ++i) {
+        for (auto i = 0; i < vec.size(); ++i) {
 
             Sort::quickSort(vec[i].begin(), vec[i].end());
         }
-        for(auto i = 0; i<vec.size(); ++i) {
-            for(auto j = 0; j<vec[i].size(); ++j) {
+        for (auto i = 0; i < vec.size(); ++i) {
+            for (auto j = 0; j < vec[i].size(); ++j) {
                 *begin = vec[i][j];
                 ++begin;
             }
@@ -121,12 +122,12 @@ public:
     // 3
     template<typename Iterator>
     static void countingSort(Iterator begin, Iterator end) {
-        vector<int>vec(max(begin, end)+1);
-        for(auto iter = begin; iter != end; ++iter) {
+        vector<int> vec(max(begin, end) + 1);
+        for (auto iter = begin; iter != end; ++iter) {
             vec[*iter] = 1;
         }
-        for(int i=0; i<vec.size(); ++i) {
-            if(vec[i] != 0) {
+        for (int i = 0; i < vec.size(); ++i) {
+            if (vec[i] != 0) {
                 *begin = i;
                 ++begin;
             }
@@ -139,17 +140,16 @@ public:
         auto Max = to_string(max(begin, end)).length();
 
         vector<vector<typename iterator_traits<Iterator>::value_type>> buckets(10);
-        for(auto i = 0; i < Max; ++i) {
-            for(auto iter = begin; iter != end; ++iter) {
-                buckets[ (*iter % static_cast<int>(pow(10, i + 1))) / static_cast<int>(pow(10, i ))].push_back(*iter);
+        for (auto i = 0; i < Max; ++i) {
+            for (auto iter = begin; iter != end; ++iter) {
+                buckets[(*iter % static_cast<int>(pow(10, i + 1))) / static_cast<int>(pow(10, i))].push_back(*iter);
             }
             auto Begin = begin;
-            for(auto j = 0; j <buckets.size(); ++j){
+            for (auto j = 0; j < buckets.size(); ++j) {
                 Begin = Copy(buckets[j].begin(), buckets[j].end(), Begin);
                 buckets[j].clear();
             }
         }
-
 
 
     }
@@ -158,7 +158,7 @@ private:
 
     template<typename Iterator>
     static void print(Iterator begin, Iterator end) {
-        for(;begin != end; ++begin) {
+        for (; begin != end; ++begin) {
             cout << *begin << " ";
         }
         cout << endl;
@@ -184,11 +184,11 @@ private:
         }
     }
 
-    template <typename Iterator>
-    static auto max(Iterator begin, Iterator end){ // n + 1
+    template<typename Iterator>
+    static auto max(Iterator begin, Iterator end) { // n + 1
         typename iterator_traits<Iterator>::value_type Max = *begin; // 1
-        for(; begin != end; ++begin) { // n
-            if(Max < *begin)
+        for (; begin != end; ++begin) { // n
+            if (Max < *begin)
                 Max = *begin; // 1
         }
         return Max;
@@ -196,7 +196,7 @@ private:
 
     template<typename inIterator, typename destIterator>
     static auto Copy(inIterator lhs, inIterator rhs, destIterator destination) { // n
-        for(; lhs != rhs; ++destination, ++lhs) { // n
+        for (; lhs != rhs; ++destination, ++lhs) { // n
             *destination = *lhs; // 1
         }
         return destination;
@@ -205,17 +205,15 @@ private:
     template<typename fInIterator, typename sInIterator, typename destIterator>
     static void Merge(fInIterator flhs, fInIterator frhs,
                       sInIterator rlhs, sInIterator rrhs,
-                      destIterator destination){ // n
-        for(;; ++destination) { // n
-            if(flhs == frhs) {
+                      destIterator destination) { // n
+        for (;; ++destination) { // n
+            if (flhs == frhs) {
                 Copy(rlhs, rrhs, destination); // n
                 return;
-            } else
-            if(rlhs == rrhs) { // n
+            } else if (rlhs == rrhs) { // n
                 Copy(flhs, frhs, destination); // n
                 return;
-            } else
-            if(*flhs < *rlhs){ // 2
+            } else if (*flhs < *rlhs) { // 2
                 *destination = *flhs; // 1
                 ++flhs; // 1
             } else {
@@ -227,70 +225,80 @@ private:
 
     template<typename Iterator>
     static size_t Distance(Iterator begin, Iterator end) { // n
-        for(size_t i = 0;;++i, ++begin) {
-            if(begin == end) return i;
+        for (size_t i = 0;; ++i, ++begin) {
+            if (begin == end) return i;
         }
     }
 
     template<typename value_type>
-    class Tree
-    {
+    class Tree {
     private:
         struct Node {
             const value_type value;
             Node *left = nullptr, *right = nullptr;
-            explicit Node(value_type value): value(value){
+
+            explicit Node(value_type value) : value(value) {
             }
         };
-        Node* head;
+
+        Node *head;
         vector<value_type> sorted;
+
         template<typename Iterator>
-        void makeTree(Iterator begin, Iterator end){
+        void makeTree(Iterator begin, Iterator end) {
             ++begin;
-            for(; begin != end; ++begin) {
+            for (; begin != end; ++begin) {
                 push(*begin);
             }
         }
-        void push(value_type value){
+
+        void push(value_type value) {
             auto current = head;
-            Node* next = head;
-            while(next != nullptr){
+            Node *next = head;
+            while (next != nullptr) {
                 current = next;
                 next = value < current->value ? current->left : current->right;
             }
 
-            if(value < current->value)
+            if (value < current->value)
                 current->left = new Node(value);
             else
                 current->right = new Node(value);
         }
-        void readTree(Node* Head) {
-            if(Head->left != nullptr) readTree(Head->left);
+
+        void readTree(Node *Head) {
+            if (Head->left != nullptr) readTree(Head->left);
             sorted.push_back(Head->value);
-            if(Head->right != nullptr) readTree(Head->right);
+            if (Head->right != nullptr) readTree(Head->right);
         }
-        void deleteNode(Node* node) {
-       void deleteNode(Node* node) {
-            if(node->left != nullptr) deleteNode(node->left);
-            if(node->right != nullptr) deleteNode(node->right);
+
+        void deleteNode(Node *node) {
+            if (node->left != nullptr) deleteNode(node->left);
+            if (node->right != nullptr) deleteNode(node->right);
             delete node;
         }
+
     public:
         template<typename Iterator>
-        Tree(Iterator begin, Iterator end){
-            if(begin != end){
-                head =new Node(*begin);
+        Tree(Iterator begin, Iterator end) {
+            if (begin != end) {
+                head = new Node(*begin);
                 makeTree(begin, end);
                 readTree(head);
             }
         }
+
         ~Tree() {
             deleteNode(head);
         }
-        auto begin() const{ return sorted.begin();}
-        auto end() const{ return sorted.end();}
-        auto begin(){ return sorted.begin();}
-        auto end(){ return sorted.end();}
+
+        auto begin() const { return sorted.begin(); }
+
+        auto end() const { return sorted.end(); }
+
+        auto begin() { return sorted.begin(); }
+
+        auto end() { return sorted.end(); }
     };
 
 };
