@@ -80,12 +80,13 @@ public:
     static void selectionSort(Iterator begin, Iterator end){
         if(distance(begin, end) < 2) return;
         else{
-            auto min = begin;
-            for(auto iter = begin; iter != end; ++iter){
-                if(*min > *iter) min = iter;
+            for (auto i = begin; i != prev(end); i++) {
+                auto min = i;
+                for (auto j = next(i); j != end; j++) {
+                    if(*min > *j) min = j;
+                }
+                iter_swap(i, min);
             }
-            if(min != begin) iter_swap(begin, min);
-            selectionSort(next(begin), end);
         }
     }
 
@@ -268,6 +269,7 @@ private:
             sorted.push_back(Head->value);
             if(Head->right != nullptr) readTree(Head->right);
         }
+        void deleteNode(Node* node) {
        void deleteNode(Node* node) {
             if(node->left != nullptr) deleteNode(node->left);
             if(node->right != nullptr) deleteNode(node->right);
@@ -356,6 +358,6 @@ int main() {
     Test(Sort::radixSort)
     Test(Sort::treeSort)
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
