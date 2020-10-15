@@ -258,6 +258,11 @@ private:
             sorted.push_back(Head->value);
             if(Head->right != nullptr) readTree(Head->right);
         }
+        void deleteNode(Node* node) {
+            if(node->left != nullptr) deleteNode(node->left);
+            if(node->right != nullptr) deleteNode(node->right);
+            delete node;
+        }
     public:
         template<typename Iterator>
         Tree(Iterator begin, Iterator end){
@@ -266,6 +271,9 @@ private:
                 makeTree(begin, end);
                 readTree(head);
             }
+        }
+        ~Tree() {
+            deleteNode(head);
         }
         auto begin() const{ return sorted.begin();}
         auto end() const{ return sorted.end();}
@@ -304,35 +312,27 @@ ostream &operator<<(ostream &stream, const deque<type> &vec) {
 
 
 
-// test random shuffle: vector, list, deque, array
-#define Test(function){                                                                                             \
-        vector<int> V(100);                                                                                         \
-        iota(V.begin(), V.end(),1);                                                                                 \
-        \
-        auto Vresult = V;                                                                                           \
-        list<int> Lresult(V.begin(), V.end());                                                                      \
-        deque<int> Dresult(V.begin(), V.end());                                                                     \
-        int* arrayResult = new int[V.size()];                                                                       \
-        copy(V.begin(), V.end(), arrayResult);\
-        \
-        random_shuffle(V.begin(), V.end());                                                                         \
-        deque<int> D (V.begin(), V.end());                                                                          \
-        list<int> L(V.begin(), V.end());                                                                            \
-        int* array = new int[V.size()];                                                                             \
-        copy(V.begin(), V.end(), array);\
-        function(L.begin(), L.end());                                                                               \
-        function(V.begin(), V.end());                                                                               \
-        function(D.begin(), D.end());                                                                               \
-        function(array, array + V.size());\
-        cerr << #function << ": " <<(Lresult != L || Vresult != V || Dresult != D || vector<int>(array, array+V.size()) != vector<int>(arrayResult, arrayResult+V.size()) ? "fail" : "success" ) << endl;    \
+// тест рандомного набора символов длины 100 на различных контейнерах с bidir итераторами: vector, list, deque, array
+
+#define create(container, function) \
+{                                \
+vector<int> temp(100);                     \
+iota(temp.begin(), temp.end(), 1);         \
+container<int> result(100), shuffled(100); \
+result = {temp.begin(), temp.end()}; \
+random_shuffle(temp.begin(), temp.end());  \
+shuffled = {temp.begin(), temp.end()};     \
+function(shuffled.begin(), shuffled.end());\
+test &= shuffled == result;\
 }
 
-//#define TEST(function)                                                                                              \
-//{                                                                                                                   \
-//    auto start = steady_clock::now();                                                                               \
-//    Test(function);                                                                                                 \
-//    cerr << "   time is " << duration_cast<milliseconds>(steady_clock::now() - start).count() << endl;              \
-//}
+#define Test(function){ \
+        bool test = true; \
+        create(vector, function) \
+        create(deque, function)  \
+        create(list, function)   \
+        cerr << #function << ": " << (test ? "success" : "fail") << endl;\
+}
 
 
 int main() {
@@ -346,5 +346,5 @@ int main() {
     Test(Sort::radixSort)
     Test(Sort::treeSort)
 
-    return 0;
+    return EXIT_SUCCESS;
 }
