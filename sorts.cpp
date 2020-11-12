@@ -77,16 +77,17 @@ public:
     }
 
     // 2
+    // (n-1) (n+2)
     template<typename Iterator>
     static void selectionSort(Iterator begin, Iterator end) {
         if (distance(begin, end) < 2) return;
         else {
-            for (auto i = begin; i != prev(end); i++) {
-                auto min = i;
-                for (auto j = next(i); j != end; j++) {
-                    if (*min > *j) min = j;
+            for (auto i = begin; i != prev(end); i++) { // n - 1
+                auto min = i; // 1
+                for (auto j = next(i); j != end; j++) { // n - 1
+                    if (*min > *j) min = j; // 1
                 }
-                iter_swap(i, min);
+                iter_swap(i, min); // 3
             }
         }
     }
@@ -108,7 +109,6 @@ public:
             vec[round(*iter / amount)].push_back(*iter);
         }
         for (auto i = 0; i < vec.size(); ++i) {
-
             Sort::quickSort(vec[i].begin(), vec[i].end());
         }
         for (auto i = 0; i < vec.size(); ++i) {
@@ -135,19 +135,20 @@ public:
     }
 
     // 3 только для интов
+    // n + 2 + k(n + 1 + 2n^2)
     template<typename Iterator>
     static void radixSort(Iterator begin, Iterator end) {
-        auto Max = to_string(max(begin, end)).length();
+        auto Max = to_string(max(begin, end)).length(); // n + 1
 
-        vector<vector<typename iterator_traits<Iterator>::value_type>> buckets(10);
-        for (auto i = 0; i < Max; ++i) {
-            for (auto iter = begin; iter != end; ++iter) {
-                buckets[(*iter % static_cast<int>(pow(10, i + 1))) / static_cast<int>(pow(10, i))].push_back(*iter);
+        vector<vector<typename iterator_traits<Iterator>::value_type>> buckets(10); // 1
+        for (auto i = 0; i < Max; ++i) { // k
+            for (auto iter = begin; iter != end; ++iter) { // n
+                buckets[(*iter % static_cast<int>(pow(10, i + 1))) / static_cast<int>(pow(10, i))].push_back(*iter); // 1
             }
-            auto Begin = begin;
-            for (auto j = 0; j < buckets.size(); ++j) {
-                Begin = Copy(buckets[j].begin(), buckets[j].end(), Begin);
-                buckets[j].clear();
+            auto Begin = begin; // 1
+            for (auto j = 0; j < buckets.size(); ++j) { // 10
+                Begin = Copy(buckets[j].begin(), buckets[j].end(), Begin); // n
+                buckets[j].clear(); // n
             }
         }
 

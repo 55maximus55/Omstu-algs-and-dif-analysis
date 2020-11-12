@@ -3,4 +3,5 @@ project(sort)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(sort main.cpp)
+add_executable(sort sorts.cpp)
+add_executable(substrings substrings.cpp)
