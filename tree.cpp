@@ -1,8 +1,4 @@
-#include <iostream>
-#include <bitset>
 #include <vector>
-#include <tuple>
-
 using namespace std;
 
 template<typename value_type>
@@ -12,14 +8,11 @@ private:
         value_type value;
         Node *left = nullptr, *right = nullptr;
         Node *parent = nullptr;
-
         explicit Node(value_type value) : value(value) {
         }
     };
-
-    Node *head;
+    Node *head = nullptr;
     vector<value_type> sorted;
-
     template<typename Iterator>
     void makeTree(Iterator begin, Iterator end) {
         ++begin;
@@ -27,30 +20,26 @@ private:
             push(*begin);
         }
     }
-
     // удаление одного узла
     void deleteNode(Node *node) {
         if (node->left == nullptr && node->right == nullptr) {
             delete node;
         }
-
     }
-
     // чтение дерева из запись в sorted
-    void readTree(Node *Head){
-        if (Head->left != nullptr) readTree(Head->left);
-        sorted.push_back(Head->value);
-        if (Head->right != nullptr) readTree(Head->right);
+    void readTree(Node *Head) {
+        if(Head != nullptr){
+            if (Head->left != nullptr) readTree(Head->left);
+            sorted.push_back(Head->value);
+            if (Head->right != nullptr) readTree(Head->right);
+        }
     }
-
     // удаление всей ветки
     void deleteBranch(Node *node) {
         if (node->left != nullptr) deleteBranch(node->left);
         if (node->right != nullptr) deleteBranch(node->right);
         delete node;
     }
-
-
 public:
     template<typename Iterator>
     Tree(Iterator begin, Iterator end) {
@@ -60,135 +49,125 @@ public:
             readTree(head);
         }
     }
-
     Tree(const vector<value_type> vec) : Tree(vec.begin(), vec.end()) {}
-
     // удаление по значению
     bool deleteByValue(value_type value) {
         Node *target = findNode(value);
-
         if (target != nullptr) {
-            //удаление, если нет потомков / голова
-            if(target->left == nullptr && target->right == nullptr){
-                if(target->parent != nullptr){
-                    target = target->parent;
-                    if(target->left->value == value){
-                        delete target->left;
-                        target->left = nullptr;
+
+            //нет потомков
+            if (target->left == nullptr && target->right == nullptr) {
+                auto parrot = target->parent;
+                // не голова
+                if(parrot != nullptr){
+                    if(parrot->left == target){
+                        parrot->left = nullptr;
                     }
                     else{
-                        delete target->right;
-                        target->right = nullptr;
+                        parrot->right = nullptr;
                     }
                 }
+                    //голова
                 else{
-                    delete head;
                     head = nullptr;
                 }
+                delete target;
             }
-                //удаление, если есть оба потомка
-            else if (target->left != nullptr && target->right != nullptr) {
-                /*
-
-                  target->value = findLeaf->value;
-                  Node *findLeaf = target->right;
-                while (findLeaf->left != nullptr)
-                    if (findLeaf->left != nullptr)
-                        findLeaf = findLeaf->left;
-
-
-                  if (findLeaf->parent->right == findLeaf)
-                      findLeaf->parent->right = findLeaf->left;
-                  if (findLeaf->parent->left == findLeaf)
-                      findLeaf->parent->left = findLeaf->right;
-                  delete findLeaf;*/
-
-                Node* current = target->right,
-                        *lastL = target->right;
-                while(current != nullptr){
-                    if(current->left != nullptr)
-                        lastL = current;
-                    current = current->left;
-                }
-                if(lastL == target->right)
-                    lastL->parent->right = lastL->right;
-                else
-                    lastL->parent->left = lastL->right;
-                target->value = lastL->value;
-                delete lastL;
-
-
-            }
-            else{
-                auto prev = target->parent;
-                // удаление, когда один потомок (не голова)
-                if(prev != nullptr){
-                    if(target->value < prev->value){
-                        prev->left = target->left != nullptr ? target->left: target->right;
-                        delete target;
+                // один левый потомок
+            else if (target->left != nullptr && target->right == nullptr) {
+                auto parent = target->parent;
+                // не голова
+                if(parent != nullptr){
+                    if(parent->left == target){
+                        parent->left = target->left;
                     }
+                    else{
+                        parent->right = target->left;
+                    }
+                    target->left->parent = parent;
                 }
-                    //удаление, когда один потомок у головы
+                    // голова
                 else{
-                    head = target->left != nullptr? target->left : target->right;
-                    delete target;
+                    target->left->parent = nullptr;
+                    head = target->left;
+                }
+                delete target;
+            }
+                // один правый потомок
+            else if (target->left == nullptr && target->right != nullptr){
+                auto parent = target->parent;
+                // не голова
+                if (parent != nullptr) {
+                    if (parent->right == target) {
+                        parent->right = target->right;
+                    }
+                    else {
+                        parent->left = target->right;
+                    }
+                    target->right->parent = parent;
+                }
+                    // голова
+                else {
+                    target->right->parent = nullptr;
+                    head = target->right;
+                }
+                delete target;
+            }
+                // два потомка
+            else {
+                // ищем заменяемую Node
+                Node *leaf = target->left;
+                while (leaf->right != nullptr) {
+                    leaf = leaf->right;
+                }
+                // заменяем value у target на найденный лист, и удаляем лист
+                target->value = leaf->value;
+                if (leaf->parent->right == leaf) {
+                    leaf->parent->right = nullptr;
+                    delete leaf;
+                } else if (leaf->parent->left == leaf) {
+                    leaf->parent->left = nullptr;
+                    delete leaf;
                 }
             }
-            return true;
         }
-
         return false;
     }
-
     // нахождение по значению
     auto findNode(value_type value) {
         auto current = head;
         while (current != nullptr && current->value != value) {
-            current = (value < current->value ? current->left : current->right);
+            current = (value < current->value ? current->left :
+                       current->right);
         }
-        if(current == nullptr) throw logic_error("curent nullptr");
         return current;
     }
-
     // добавление узла
     void push(value_type value) {
         Node *current = head;
-        while ((value < current->value ? current->left : current->right) != nullptr) {
-            current = value < current->value ? current->left : current->right;
+        while ((value < current->value ? current->left : current->right) !=
+               nullptr) {
+            current = value < current->value ? current->left :
+                      current->right;
         }
-
-        if (value < current->value)
-        {
+        if (value < current->value) {
             current->left = new Node(value);
             current->left->parent = current;
-        }
-        else
-        {
+        } else {
             current->right = new Node(value);
             current->right->parent = current;
         }
     }
-
-    auto begin() const {
-        sorted.clear();
-        readTree(head);
-        return sorted.begin(); }
-
-    auto end() const {
-        return sorted.end(); }
-
     auto begin() {
         sorted.clear();
         readTree(head);
-        return sorted.begin(); }
-
+        return sorted.begin();
+    }
     auto end() {
-        return sorted.end(); }
-
+        return sorted.end();
+    }
     ~Tree() {
-        deleteBranch(head);
+        if(head != nullptr)
+            deleteBranch(head);
     }
 };
-
-
-
