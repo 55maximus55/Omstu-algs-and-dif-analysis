@@ -1,18 +1,25 @@
 #include <vector>
+#include <iostream>
 using namespace std;
 
-template<typename value_type>
+template<typename key_type, typename value_type>
 class Tree {
 private:
     struct Node {
+        key_type key;
         value_type value;
+
         Node *left = nullptr, *right = nullptr;
         Node *parent = nullptr;
-        explicit Node(value_type value) : value(value) {
+        explicit Node(pair<key_type,value_type> p) : key(p.first), value(p.second) {
         }
     };
+
     Node *head = nullptr;
-    vector<value_type> sorted;
+
+    vector<value_type*> sorted;
+
+
     template<typename Iterator>
     void makeTree(Iterator begin, Iterator end) {
         ++begin;
@@ -30,7 +37,7 @@ private:
     void readTree(Node *Head) {
         if(Head != nullptr){
             if (Head->left != nullptr) readTree(Head->left);
-            sorted.push_back(Head->value);
+            sorted.push_back(&Head->value);
             if (Head->right != nullptr) readTree(Head->right);
         }
     }
@@ -40,19 +47,68 @@ private:
         if (node->right != nullptr) deleteBranch(node->right);
         delete node;
     }
+
+public:
+    // нахождение по значению
+    auto findNode(key_type key) {
+        auto current = head;
+        while (current != nullptr && current->key != key) {
+            current = (key < current->key ? current->left :
+                       current->right);
+        }
+        return current;
+    }
+
+    //// VALUE обязан иметь конструктор по умолчанию
+    Node& operator[](key_type key){
+        auto node = findNode(key);
+        if(node == nullptr){
+            node = push({key, *new value_type()});
+        }
+        return *node;
+    }
+
 public:
     template<typename Iterator>
     Tree(Iterator begin, Iterator end) {
         if (begin != end) {
             head = new Node(*begin);
             makeTree(begin, end);
-            readTree(head);
         }
     }
-    Tree(const vector<value_type> vec) : Tree(vec.begin(), vec.end()) {}
-    // удаление по значению
-    bool deleteByValue(value_type value) {
-        Node *target = findNode(value);
+    Tree(const vector<pair<key_type, value_type>> vec) : Tree(vec.begin(), vec.end()) {}
+
+
+    // добавление узла
+    auto push(pair<key_type,value_type> newNode) {
+        Node* check = findNode(newNode.first);
+        if(check != nullptr){
+            check->value = newNode.second;
+        }
+        else
+        {
+            Node *current = head;
+            while ((newNode.first < current->key ? current->left : current->right) !=
+                   nullptr) {
+                current = newNode.first < current->key ? current->left :
+                          current->right;
+            }
+            if (newNode.first < current->key) {
+                current->left = new Node(newNode);
+                current->left->parent = current;
+                return current->left;
+            } else {
+                current->right = new Node(newNode);
+                current->right->parent = current;
+                return current->right;
+            }
+
+        }
+
+    }
+    // удаление по значению ключа
+    bool pop(key_type key) {
+        Node *target = findNode(key);
         if (target != nullptr) {
 
             //нет потомков
@@ -120,8 +176,9 @@ public:
                 while (leaf->right != nullptr) {
                     leaf = leaf->right;
                 }
-                // заменяем value у target на найденный лист, и удаляем лист
-                target->value = leaf->value;
+                // заменяем key у target на найденный лист, и удаляем лист
+                target->key = leaf->key;
+                target->value = target->value;
                 if (leaf->parent->right == leaf) {
                     leaf->parent->right = nullptr;
                     delete leaf;
@@ -133,31 +190,7 @@ public:
         }
         return false;
     }
-    // нахождение по значению
-    auto findNode(value_type value) {
-        auto current = head;
-        while (current != nullptr && current->value != value) {
-            current = (value < current->value ? current->left :
-                       current->right);
-        }
-        return current;
-    }
-    // добавление узла
-    void push(value_type value) {
-        Node *current = head;
-        while ((value < current->value ? current->left : current->right) !=
-               nullptr) {
-            current = value < current->value ? current->left :
-                      current->right;
-        }
-        if (value < current->value) {
-            current->left = new Node(value);
-            current->left->parent = current;
-        } else {
-            current->right = new Node(value);
-            current->right->parent = current;
-        }
-    }
+
     auto begin() {
         sorted.clear();
         readTree(head);
@@ -166,6 +199,7 @@ public:
     auto end() {
         return sorted.end();
     }
+
     ~Tree() {
         if(head != nullptr)
             deleteBranch(head);
