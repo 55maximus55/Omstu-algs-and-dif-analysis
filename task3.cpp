@@ -24,8 +24,8 @@ private:
             return value;
         }
     };
-    Node* head;
 public:
+    Node* head;
     //проверка на количество скобок
     bool checkValidate(const string& line){
         int counter = 0;
@@ -109,7 +109,15 @@ public:
         if(!checkValidate(line)) throw logic_error("wrong number of brackets");
         makeNode(removeAllSpaces(line), head);
     }
+
+    void printNode(Node* node){
+        if(node->left != nullptr) printNode(node->left);
+        if(node->right != nullptr) printNode(node->right);
+        cout << " " << node->value << " ";
+    }
+
 };
+
 
 int main() {
     auto t = Tree<string>(
@@ -117,7 +125,7 @@ int main() {
             );
 
     //шоб нормально подсвечивался конструктор
-    t;
+    t.printNode(t.head);
 
     return EXIT_SUCCESS;
 }
