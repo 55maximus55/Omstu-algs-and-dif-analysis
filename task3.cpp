@@ -121,27 +121,21 @@ public:
 
     double calculateNode(Node *node) {
         if (node->value == "+") {
-            if (node->left == nullptr) throw logic_error("binary operator, expects 2 values");
-            if (node->right == nullptr) throw logic_error("binary operator, expects 2 values");
-
+            if (!node->left && !node->right) throw logic_error("'+' is a binary operator, expects 2 values");
+            if (!node->left && node->right) return calculateNode(node->right);
             return calculateNode(node->left) + calculateNode(node->right);
         }
         if (node->value == "-") {
-            if (node->left == nullptr) throw logic_error("binary operator, expects 2 values");
-            if (node->right == nullptr) throw logic_error("binary operator, expects 2 values");
-
+            if (!node->left && !node->right) throw logic_error("'-' is a binary operator, expects 2 values");
+            if (!node->left && node->right) return -calculateNode(node->right);
             return calculateNode(node->left) - calculateNode(node->right);
         }
         if (node->value == "*") {
-            if (node->left == nullptr) throw logic_error("binary operator, expects 2 values");
-            if (node->right == nullptr) throw logic_error("binary operator, expects 2 values");
-
+            if (!node->left || !node->right) throw logic_error("'*' is a binary operator, expects 2 values");
             return calculateNode(node->left) * calculateNode(node->right);
         }
         if (node->value == "/") {
-            if (node->left == nullptr) throw logic_error("binary operator, expects 2 values");
-            if (node->right == nullptr) throw logic_error("binary operator, expects 2 values");
-
+            if (!node->left || !node->right) throw logic_error("'/' is a binary operator, expects 2 values");
             return calculateNode(node->left) / calculateNode(node->right);
         }
         return stod(node->value);
@@ -152,7 +146,7 @@ public:
 
 int main() {
     auto t = Tree<string>(
-            "(12 + 13) * 14 / (74 + 2)"
+            "-(12 + 13) * 14 / (-74 + 2)"
     );
 
     //шоб нормально подсвечивался конструктор
