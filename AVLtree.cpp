@@ -14,6 +14,7 @@ private:
             height = 1;
         }
     };
+    Node* head = nullptr;
 
     /* Возврат высоты узла */
     int nodeHeight(Node* node) {
@@ -33,9 +34,54 @@ private:
             return nodeHeight(node->left) - nodeHeight(node->right);
         else return 0;
     }
+
+    /* Правый поворот */
+    Node* rotateRight(Node* p) {
+        Node* q = p->left;
+        p->left = q->right;
+        q->right = p;
+        fixNodeHeight(p);
+        fixNodeHeight(q);
+        return q;
+    }
+    /* Левый поворот */
+    Node* rotateLeft(Node* q) {
+        Node* p = q->right;
+        q->right = q->left;
+        p->left = q;
+        fixNodeHeight(p);
+        fixNodeHeight(q);
+        return p;
+    }
+
+    /* Балансировка узлов */
+    Node* balanceNode(Node* p) {
+        fixNodeHeight(p);
+        if (balanceFactor(p) == 2) {
+            if (balanceFactor(p->right) < 0)
+                p->right = rotateRight(p->right);
+            return rotateLeft(p);
+        }
+        if (balanceFactor(p) == -2) {
+            if (balanceFactor(p->left) > 0)
+                p->left = rotateRight(p->left);
+            return rotateRight(p);
+        }
+        return p;
+    }
+    /* Вставка узла в дерево с корнем p */
+    Node* insert(Node* p, key_type key, value_type value) {
+        if (!p) return new Node(key, value);
+        if (key < p->key) p->left = insert(p->left, key, value);
+        else p->right = insert(p->right, key, value);
+        return balanceNode(p);
+    }
 public:
     AVLtree() = default;
-    void push(key_type key, value_type value);
+    void push(key_type key, value_type value) {
+        if (!head) head =  new Node(key, value);
+        else insert(head, key, value);
+    }
     void remove(key_type key);
     value_type get(key_type key);
     bool contains(key_type key);
