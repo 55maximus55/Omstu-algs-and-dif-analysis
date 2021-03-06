@@ -15,15 +15,14 @@ private:
         }
     };
     Node* head = nullptr;
-
     /* Получение узла по ключу */
     Node* getNode(Node* node, key_type key) {
         if (node) {
             if (node->key == key)
                 return node;
-            if (node->key < key)
+            if (key < node->key)
                 return getNode(node->left, key);
-            if (node->key > key)
+            if (key > node->key)
                 return getNode(node->right, key);
         }
         else return nullptr;
@@ -113,6 +112,36 @@ private:
             return nullptr;
         }
     }
+
+    /* Находим левый лист поддерева */
+    Node* getMinNode(Node* node) {
+        return node->left ? getMinNode(node->left) : node;
+    }
+    /* Удаление левого листа */
+    Node* removeMinNode(Node* node) {
+        if(!node->left)
+            return node->right;
+        node->left = removeMinNode(node->left);
+        return balanceNode(node);
+    }
+    Node* removeNode(Node* p, key_type key) {
+        if (!p) return nullptr;
+        if (key < p->key)
+            p->left = removeNode(p->left, key);
+        else if(key > p->key)
+            p->right = removeNode(p->right, key);
+        else {
+            Node* q = p->left;
+            Node* r = p->right;
+            delete p;
+            if (!r) return q;
+            Node* min = getMinNode(r);
+            min->right = removeMinNode(r);
+            min->left = q;
+            return balanceNode(min);
+        }
+        return balanceNode(p);
+    }
 public:
     AvlTree() = default;
     void push(key_type key, value_type value) {
@@ -125,7 +154,11 @@ public:
                 head = insert(head, key, value);
         }
     }
-    void remove(key_type key);
+    void remove(key_type key) {
+        if (contains(key)) {
+            removeNode(head, key);
+        }
+    }
     value_type get(key_type key) {
         Node* node = getNode(key);
         if (node)
@@ -133,6 +166,6 @@ public:
         else return nullptr;
     }
     bool contains(key_type key) {
-        return getNode(key) != nullptr;
+        return getNode(head, key) != nullptr;
     }
 };

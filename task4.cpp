@@ -20,5 +20,6 @@ int main() {
     tree.push(4, 0);
     tree.push(5, 0);
     tree.push(6, 0);
+    tree.remove(2);
     return EXIT_SUCCESS;
 }
