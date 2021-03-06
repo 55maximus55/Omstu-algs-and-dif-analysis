@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include "AvlTree.cpp"
 
 using namespace std;
 
@@ -12,6 +13,12 @@ using namespace std;
  * */
 
 int main() {
-
+    auto tree = AvlTree<int, int>();
+    tree.push(1, 0);
+    tree.push(2, 0);
+    tree.push(3, 0);
+    tree.push(4, 0);
+    tree.push(5, 0);
+    tree.push(6, 0);
     return EXIT_SUCCESS;
 }

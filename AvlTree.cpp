@@ -1,5 +1,5 @@
 template<typename key_type, typename value_type>
-class AVLtree {
+class AvlTree {
 private:
     /* Узел */
     struct Node {
@@ -60,25 +60,25 @@ private:
     /* Левый поворот */
     Node* rotateLeft(Node* q) {
         Node* p = q->right;
-        q->right = q->left;
+        q->right = p->left;
         p->left = q;
-        fixNodeHeight(p);
         fixNodeHeight(q);
+        fixNodeHeight(p);
         return p;
     }
 
     /* Балансировка узлов */
     Node* balanceNode(Node* p) {
         fixNodeHeight(p);
-        if (balanceFactor(p) == 2) {
+        if (balanceFactor(p) >= 2) {
             if (balanceFactor(p->right) < 0)
                 p->right = rotateRight(p->right);
             return rotateLeft(p);
         }
-        if (balanceFactor(p) == -2) {
+        if (balanceFactor(p) <= -2) {
             if (balanceFactor(p->left) > 0)
                 p->left = rotateRight(p->left);
-            return rotateRight(p);
+            return rotateLeft(p);
         }
         return p;
     }
@@ -89,16 +89,40 @@ private:
         else p->right = insert(p->right, key, value);
         return balanceNode(p);
     }
+
+    /* Поиск родительского узла */
+    Node* getParentNode(Node* node, key_type key) {
+        if (!node)
+            return nullptr;
+        if (node->key == key)
+            return nullptr;
+        if (key < node->key) {
+            if (node->left) {
+                if (node->left->key != key)
+                    return getParentNode(node->left, key);
+                else return node;
+            }
+            return nullptr;
+        }
+        if (key < node->key) {
+            if (node->right) {
+                if (node->right->key != key)
+                    return getParentNode(node->right, key);
+                else return node;
+            }
+            return nullptr;
+        }
+    }
 public:
-    AVLtree() = default;
+    AvlTree() = default;
     void push(key_type key, value_type value) {
         if (!head) head =  new Node(key, value);
         else {
-            Node* node = getNode(key);
+            Node* node = getNode(head, key);
             if (node)
                 node->value = value;
             else
-                insert(head, key, value);
+                head = insert(head, key, value);
         }
     }
     void remove(key_type key);
