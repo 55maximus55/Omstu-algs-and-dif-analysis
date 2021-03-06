@@ -16,6 +16,19 @@ private:
     };
     Node* head = nullptr;
 
+    /* Получение узла по ключу */
+    Node* getNode(Node* node, key_type key) {
+        if (node) {
+            if (node->key == key)
+                return node;
+            if (node->key < key)
+                return getNode(node->left, key);
+            if (node->key > key)
+                return getNode(node->right, key);
+        }
+        else return nullptr;
+    }
+
     /* Возврат высоты узла */
     int nodeHeight(Node* node) {
         return node ? node->height : 0;
@@ -83,6 +96,13 @@ public:
         else insert(head, key, value);
     }
     void remove(key_type key);
-    value_type get(key_type key);
-    bool contains(key_type key);
+    value_type get(key_type key) {
+        Node* node = getNode(key);
+        if (node)
+            return node->value;
+        else return nullptr;
+    }
+    bool contains(key_type key) {
+        return getNode(key) != nullptr;
+    }
 };
