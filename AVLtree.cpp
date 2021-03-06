@@ -93,7 +93,13 @@ public:
     AVLtree() = default;
     void push(key_type key, value_type value) {
         if (!head) head =  new Node(key, value);
-        else insert(head, key, value);
+        else {
+            Node* node = getNode(key);
+            if (node)
+                node->value = value;
+            else
+                insert(head, key, value);
+        }
     }
     void remove(key_type key);
     value_type get(key_type key) {
