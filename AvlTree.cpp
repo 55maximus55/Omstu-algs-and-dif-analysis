@@ -160,10 +160,9 @@ public:
         }
     }
     value_type get(key_type key) {
-        Node* node = getNode(key);
+        Node* node = getNode(head, key);
         if (node)
             return node->value;
-        else return nullptr;
     }
     bool contains(key_type key) {
         return getNode(head, key) != nullptr;
