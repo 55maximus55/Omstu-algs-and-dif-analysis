@@ -1,3 +1,8 @@
+#include <string>
+#include <iostream>
+
+using namespace std;
+
 template<typename key_type, typename value_type>
 class AvlTree {
 private:
@@ -6,165 +11,127 @@ private:
         key_type key;
         value_type value;
         int height;
-        Node* left;
-        Node* right;
+        Node *left;
+        Node *right;
+
         Node(key_type key, value_type value) : key(key), value(value) {
             left = nullptr;
             right = nullptr;
             height = 1;
         }
     };
-    Node* head = nullptr;
-    /* Получение узла по ключу */
-    Node* getNode(Node* node, key_type key) {
-        if (node) {
-            if (node->key == key)
-                return node;
-            if (key < node->key)
-                return getNode(node->left, key);
-            if (key > node->key)
-                return getNode(node->right, key);
-        }
-        else return nullptr;
-    }
+    Node *head = nullptr;
 
-    /* Возврат высоты узла */
-    int nodeHeight(Node* node) {
-        return node ? node->height : 0;
+    unsigned char nodeHeight(Node *p) {
+        return p ? p->height : 0;
     }
-    /* Восстановление корректного значения высоты заданного узла */
-    void fixNodeHeight(Node* node) {
-        if (node) {
-            int leftHeight = nodeHeight(node->left);
-            int rightHeight = nodeHeight(node->right);
-            node->height = (leftHeight > rightHeight ? leftHeight : rightHeight) + 1;
-        }
+    int balanceFactor(Node *p) {
+        return nodeHeight(p->right) - nodeHeight(p->left);
     }
-    /* Разница высот поддеревьев узла */
-    int balanceFactor(Node* node) {
-        if (node)
-            return nodeHeight(node->left) - nodeHeight(node->right);
-        else return 0;
+    void fixHeight(Node *p) {
+        unsigned char hl = nodeHeight(p->left);
+        unsigned char hr = nodeHeight(p->right);
+        p->height = (hl > hr ? hl : hr) + 1;
     }
-
-    /* Правый поворот */
-    Node* rotateRight(Node* p) {
-        Node* q = p->left;
+    Node *rotateRight(Node *p) { // правый поворот вокруг p
+        Node *q = p->left;
         p->left = q->right;
         q->right = p;
-        fixNodeHeight(p);
-        fixNodeHeight(q);
+        fixHeight(p);
+        fixHeight(q);
         return q;
     }
-    /* Левый поворот */
-    Node* rotateLeft(Node* q) {
-        Node* p = q->right;
+    Node *rotateLeft(Node *q) {// левый поворот вокруг q
+        Node *p = q->right;
         q->right = p->left;
         p->left = q;
-        fixNodeHeight(q);
-        fixNodeHeight(p);
+        fixHeight(q);
+        fixHeight(p);
         return p;
     }
-
-    /* Балансировка узлов */
-    Node* balanceNode(Node* p) {
-        fixNodeHeight(p);
-        if (balanceFactor(p) >= 2) {
+    Node *balanceNode(Node *p) { // балансировка узла p
+        fixHeight(p);
+        if (balanceFactor(p) == 2) {
             if (balanceFactor(p->right) < 0)
                 p->right = rotateRight(p->right);
             return rotateLeft(p);
         }
-        if (balanceFactor(p) <= -2) {
+        if (balanceFactor(p) == -2) {
             if (balanceFactor(p->left) > 0)
-                p->left = rotateRight(p->left);
-            return rotateLeft(p);
+                p->left = rotateLeft(p->left);
+            return rotateRight(p);
         }
-        return p;
+        return p; // балансировка не нужна
     }
-    /* Вставка узла в дерево с корнем p */
-    Node* insert(Node* p, key_type key, value_type value) {
+    Node *insertNode(Node *p, key_type key, value_type value) { // вставка ключа key в дерево с корнем p
         if (!p) return new Node(key, value);
-        if (key < p->key) p->left = insert(p->left, key, value);
-        else p->right = insert(p->right, key, value);
+        if (key < p->key)
+            p->left = insertNode(p->left, key, value);
+        else
+            p->right = insertNode(p->right, key, value);
         return balanceNode(p);
     }
-
-    /* Поиск родительского узла */
-    Node* getParentNode(Node* node, key_type key) {
-        if (!node)
-            return nullptr;
-        if (node->key == key)
-            return nullptr;
-        if (key < node->key) {
-            if (node->left) {
-                if (node->left->key != key)
-                    return getParentNode(node->left, key);
-                else return node;
-            }
-            return nullptr;
-        }
-        if (key < node->key) {
-            if (node->right) {
-                if (node->right->key != key)
-                    return getParentNode(node->right, key);
-                else return node;
-            }
-            return nullptr;
-        }
+    Node *findMinNode(Node *p) { // поиск узла с минимальным ключом в дереве p
+        return p->left ? findMinNode(p->left) : p;
     }
-
-    /* Находим левый лист поддерева */
-    Node* getMinNode(Node* node) {
-        return node->left ? getMinNode(node->left) : node;
+    Node *removeMinNode(Node *p) { // удаление узла с минимальным ключом из дерева p
+        if (p->left == 0)
+            return p->right;
+        p->left = removeMinNode(p->left);
+        return balanceNode(p);
     }
-    /* Удаление левого листа */
-    Node* removeMinNode(Node* node) {
-        if(!node->left)
-            return node->right;
-        node->left = removeMinNode(node->left);
-        return balanceNode(node);
-    }
-    Node* removeNode(Node* p, key_type key) {
-        if (!p) return nullptr;
-        if (key < p->key)
-            p->left = removeNode(p->left, key);
-        else if(key > p->key)
-            p->right = removeNode(p->right, key);
-        else {
-            Node* q = p->left;
-            Node* r = p->right;
+    Node *removeNode(Node *p, key_type k) { // удаление ключа k из дерева p
+        if (!p) return 0;
+        if (k < p->key)
+            p->left = removeNode(p->left, k);
+        else if (k > p->key)
+            p->right = removeNode(p->right, k);
+        else //  k == p->key
+        {
+            Node *q = p->left;
+            Node *r = p->right;
             delete p;
             if (!r) return q;
-            Node* min = getMinNode(r);
+            Node *min = findMinNode(r);
             min->right = removeMinNode(r);
             min->left = q;
             return balanceNode(min);
         }
         return balanceNode(p);
     }
+
 public:
     AvlTree() = default;
+
     void push(key_type key, value_type value) {
-        if (!head) head =  new Node(key, value);
-        else {
-            Node* node = getNode(head, key);
-            if (node)
-                node->value = value;
-            else
-                head = insert(head, key, value);
-        }
+        if (!head) head = new Node(key, value);
+        else head = insertNode(head, key, value);
     }
     void remove(key_type key) {
-        if (contains(key)) {
-            removeNode(head, key);
-        }
+        head = removeNode(head, key);
     }
     value_type get(key_type key) {
-        Node* node = getNode(head, key);
+        Node *node = getNode(head, key);
         if (node)
             return node->value;
     }
+    value_type operator[](key_type key) {
+        return get(key);
+    }
     bool contains(key_type key) {
         return getNode(head, key) != nullptr;
+    }
+
+
+    void kekf(Node *node, string k) {
+        if (node) {
+            cout << node->key << " " << k << endl;
+            kekf(node->left, k + "l");
+            kekf(node->right, k + "r");
+        }
+    }
+    void kek() {
+        kekf(head, "");
+        cout << endl;
     }
 };
