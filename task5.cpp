@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
-#include "RedBlackTree.cpp"
+#include "RBTree.h"
+
 using namespace std;
 
 /*
@@ -12,12 +13,17 @@ using namespace std;
  * */
 
 int main() {
-    auto tree = RBTree<int, int>();
-    tree.insert(0, 0);
-    tree.insert(1, 0);
-    tree.insert(2, 0);
-    tree.insert(3, 0);
-    tree.insert(4, 0);
-    tree.insert(5, 0);
+    auto tree = new RBTree();
+    tree->insert(8);
+    tree->insert(7);
+    tree->insert(4);
+    tree->insert(6);
+    tree->insert(5);
+    tree->insert(3);
+    tree->insert(2);
+    tree->insert(1);
+
+    tree->printTree();
+
     return EXIT_SUCCESS;
 }
