@@ -46,7 +46,7 @@ public:
             else
                 col = "red";
 
-            std::cout << t << ", " << node->key << " (" << col << ")" << ": ";
+            std::cout << t << " " << node->key << " (" << col << ")" << ": ";
             std::cout << "p("; if (node->parent != nullptr) std::cout << node->parent->key; else std::cout << "null"; std::cout << "),";
             std::cout << "l("; if (node->left != nullptr) std::cout << node->left->key; else std::cout << "null"; std::cout << "),";
             std::cout << "r("; if (node->right != nullptr) std::cout << node->right->key; else std::cout << "null"; std::cout << ")";
@@ -82,6 +82,9 @@ public:
 
             insertCase1(node);
         }
+    }
+    void remove(int key) {
+
     }
 
 };
