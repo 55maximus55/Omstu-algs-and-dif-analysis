@@ -18,7 +18,7 @@ class RBTree {
         Node *left = nullptr;
         Node *right = nullptr;
 
-        Node(int key) : key(key) {}
+        Node(int key, NodeColor color, Node *left, Node *right) : key(key), color(color), left(left), right(right) {}
 
     };
 
@@ -26,15 +26,10 @@ class RBTree {
 
     Node *getGrandparent(Node *node);
     Node *getUncle(Node *node);
+    Node *getBrother(Node *node);
 
     void rotateLeft(Node *node);
     void rotateRight(Node *node);
-
-    void insertCase1(Node *node);
-    void insertCase2(Node *node);
-    void insertCase3(Node *node);
-    void insertCase4(Node *node);
-    void insertCase5(Node *node);
 
 public:
 
@@ -60,31 +55,10 @@ public:
         pr("", head);
     }
 
-    void insert(int key) {
-        if (head == nullptr)
-            head = new Node(key);
-        else {
-            Node *node = head;
-            while (key < node->key && node->left != nullptr || key > node->key && node->right != nullptr) {
-                if (key > node->key)
-                    node = node->right;
-                else
-                    node = node->left;
-            }
+    void insert(int key);
+    void insertFix(Node *node);
 
-            Node *child = new Node(key);
-            child->parent = node;
-            child->color = RED;
-            if (key > node->key)
-                node->right = child;
-            else
-                node->left = child;
-
-            insertCase1(node);
-        }
-    }
-    void remove(int key) {
-
-    }
+    void remove(int key);
+    void removeFix(Node *node);
 
 };

@@ -56,85 +56,213 @@ RBTree::Node *RBTree::getUncle(RBTree::Node *node) {
     else
         return grandparent->left;
 }
-
-/* Текущий узел N в корне дерева. В этом случае, он перекрашивается в чёрный цвет чтобы оставить верным Свойство 2 (Корень — чёрный).
-     * Так как это действие добавляет один чёрный узел в каждый путь,
-     * Свойство 5 (Все пути от любого данного узла до листовых узлов содержат одинаковое число чёрных узлов) не нарушается.  */
-void RBTree::insertCase1(RBTree::Node *node) {
-    if (node->parent == nullptr)
-        node->color = BLACK;
-    else
-        insertCase2(node);
+RBTree::Node *RBTree::getBrother(RBTree::Node *node) {
+    if (node->parent == nullptr) return nullptr;
+    if (node->parent->left == node) return node->parent->right;
+    else return node->parent->left;
 }
-/* Предок P текущего узла чёрный, то есть Свойство 4 (Оба потомка каждого красного узла — чёрные) не нарушается.
- * В этом случае дерево остаётся корректным.
- * Свойство 5 (Все пути от любого данного узла до листовых узлов содержат одинаковое число чёрных узлов) не нарушается,
- * потому что текущий узел N имеет двух чёрных листовых потомков, но так как N является красным,
- * путь до каждого из этих потомков содержит такое же число чёрных узлов, что и путь до чёрного листа,
- * который был заменен текущим узлом, так что свойство остается верным.  */
-void RBTree::insertCase2(RBTree::Node *node) {
-    if (node->parent->color == BLACK)
-        return; /* Tree is still valid */
-    else
-        insertCase3(node);
-}
-/* Если и родитель P, и дядя U — красные, то они оба могут быть перекрашены в чёрный, и дедушка G станет красным
- * (для сохранения свойства 5 (Все пути от любого данного узла до листовых узлов содержат одинаковое число чёрных узлов)).
- * Теперь у текущего красного узла N чёрный родитель. Так как любой путь через родителя или дядю должен проходить через дедушку,
- * число чёрных узлов в этих путях не изменится. Однако, дедушка G теперь может нарушить свойства 2 (Корень — чёрный)
- * или 4 (Оба потомка каждого красного узла — чёрные) (свойство 4 может быть нарушено, так как родитель G может быть красным).
- * Чтобы это исправить, вся процедура рекурсивно выполняется на G из случая 1. */
-void RBTree::insertCase3(RBTree::Node *node) {
-    Node *uncle = getUncle(node);
-    Node *grandparent;
 
-    if ((uncle != nullptr) && (uncle->color == RED)) {
-        // && (n->parent->color == RED) Второе условие проверяется в insert_case2, то есть родитель уже является красным.
-        node->parent->color = BLACK;
-        uncle->color = BLACK;
-        grandparent = getGrandparent(node);
-        grandparent->color = RED;
-        insertCase1(grandparent);
+void RBTree::insert(int key) {
+    Node *node = new Node(key, RED, nullptr, nullptr);
+    if (head == nullptr) {
+        head = node;
     } else {
-        insertCase4(node);
+        Node *p = head;
+        Node *q = nullptr;
+        while (p != nullptr) {// спускаемся вниз, пока не дойдем до подходящего листа
+            q = p;
+            if (p->key < node->key)
+                p = p->right;
+            else
+                p = p->left;
+        }
+        node->parent = q;
+        // добавляем новый элемент красного цвета
+        if (q->key < node->key)
+            q->right = node;
+        else
+            q->left = node;
     }
+    insertFix(node); // проверяем, не нарушены ли свойства красно-черного дерева
 }
-/* Родитель P является красным, но дядя U — чёрный. Также, текущий узел N — правый потомок P, а P в свою очередь — левый потомок своего предка G.
- * В этом случае может быть произведен поворот дерева, который меняет роли текущего узла N и его предка P.
- * Тогда, для бывшего родительского узла P в обновленной структуре используем случай 5,
- * потому что Свойство 4 (Оба потомка любого красного узла — чёрные) все ещё нарушено.
- * Вращение приводит к тому, что некоторые пути (в поддереве, обозначенном «1» на схеме) проходят через узел N,
- * чего не было до этого. Это также приводит к тому, что некоторые пути (в поддереве, обозначенном «3») не проходят через узел P.
- * Однако, оба эти узла являются красными, так что Свойство 5 (Все пути от любого данного узла до листовых узлов содержат одинаковое число чёрных узлов)
- * не нарушается при вращении. Однако Свойство 4 всё ещё нарушается, но теперь задача сводится к Случаю 5.  */
-void RBTree::insertCase4(RBTree::Node *node) {
-    Node *grandparent = getGrandparent(node);
-
-    if ((node == node->parent->right) && (node->parent == grandparent->left)) {
-        rotateLeft(node->parent);
-        node = node->left;
-    } else if ((node == node->parent->left) && (node->parent == grandparent->right)) {
-        rotateRight(node->parent);
-        node = node->right;
+void RBTree::insertFix(RBTree::Node *t) {
+    if (t == head) {
+        t->color = BLACK;
+        return;
     }
-    insertCase5(node);
+    // далее все предки упоминаются относительно t
+    while (t->parent != nullptr && t->parent->color == RED) { // нарушается свойство 3
+        if (getGrandparent(t)->left == t->parent) {
+            if (getUncle(t) != nullptr && getUncle(t)->color == RED) {
+                t->parent->color = BLACK;
+                getUncle(t)->color = BLACK;
+                getGrandparent(t)->color = RED;
+                t = getGrandparent(t);
+            }
+            else {
+                if (t->parent->right == t) {
+                    t = t->parent;
+                    rotateLeft(t);
+                }
+                t->parent->color = BLACK;
+                getGrandparent(t)->color = RED;
+                rotateRight(getGrandparent(t));
+            }
+        }
+        else { // "отец" — правый ребенок
+            if (getUncle(t) != nullptr && getUncle(t)->color == RED) {
+                t->parent->color = BLACK;
+                getUncle(t)->color = BLACK;
+                getGrandparent(t)->color = RED;
+                t = getGrandparent(t);
+            }
+            else {// нет "дяди"
+                if (t->parent->left == t) {
+                        t = t->parent;
+                        rotateRight(t);
+                }
+                t->parent->color = BLACK;
+                getGrandparent(t)->color = RED;
+                rotateLeft(getGrandparent(t));
+            }
+        }
+    }
+    head->color = BLACK; // восстанавливаем свойство корня
 }
-/* Родитель P является красным, но дядя U — чёрный, текущий узел N — левый потомок P и P — левый потомок G.
- * В этом случае выполняется поворот дерева на G. В результате получается дерево,
- * в котором бывший родитель P теперь является родителем и текущего узла N и бывшего дедушки G.
- * Известно, что G — чёрный, так как его бывший потомок P не мог бы в противном случае быть красным (без нарушения Свойства 4).
- * Тогда цвета P и G меняются и в результате дерево удовлетворяет Свойству 4 (Оба потомка любого красного узла — чёрные).
- * Свойство 5 (Все пути от любого данного узла до листовых узлов содержат одинаковое число чёрных узлов) также остается верным,
- * так как все пути, которые проходят через любой из этих трех узлов, ранее проходили через G, поэтому теперь они все проходят через P.
- * В каждом случае, из этих трёх узлов только один окрашен в чёрный. */
-void RBTree::insertCase5(RBTree::Node *node) {
-    Node *grandparent = getGrandparent(node);
 
-    node->parent->color = BLACK;
-    grandparent->color = RED;
-    if ((node == node->parent->left) && (node->parent == grandparent->left)) {
-        rotateRight(grandparent);
-    } else {
-        rotateLeft(grandparent);
+void RBTree::remove(int key) {
+//    Node y = nil
+//    Node q = nil
+
+    Node *p = head;
+    // находим узел с ключом key
+    while (p != nullptr && p->key != key) {
+        if (p->key < key)
+            p = p->right;
+        else
+            p = p->left;
+    }
+    if (p == nullptr) return;
+    Node *y = p->right;
+
+    /* Нет потомков */
+    if (p->left == nullptr && p->right == nullptr) {
+        if (p == head)
+            head = nullptr;
+        else {
+            if (p->parent->left == p)
+                p->parent->left = nullptr;
+            else
+                p->parent->right = nullptr;
+            delete p;
+        }
+        return;
+    }
+    /* Один потомок */
+    else if (p->left == nullptr && p->right != nullptr || p->left != nullptr && p->right == nullptr) { //один ребенок
+//        ссылку на у от "отца" меняем на ребенка y
+        if (p->left != nullptr) {
+            p->left->parent = p->parent;
+            if (p->parent->right == p)
+                p->parent->right = p->left;
+            else
+                p->parent->left = p->left;
+        } else {
+            p->right->parent = p->parent;
+            if (p->parent->right == p)
+                p->parent->right = p->right;
+            else
+                p->parent->left = p->right;
+        }
+    }
+    /* два потомка */
+    else {
+        // вершина, со следующим значением ключа // у нее нет левого ребенка
+        while (y->left != nullptr)
+            y = y->left;
+
+
+        Node *x = y->right;
+        Node *z = y->parent;
+        if (p == z) z->right = x;
+        else z->left = x;
+        if (x != nullptr) x->parent = z;
+
+        y->right = p->right;
+        if (y->right != nullptr) y->right->parent = y;
+
+
+        y->left = p->left;
+        y->left->parent = y;
+
+
+        if (p == head) {
+            head = y;
+            y->parent = nullptr;
+        } else {
+            y->parent = p->parent;
+            if (p->parent->left == p) p->parent->left = y;
+            else p->parent->right = y;
+        }
+    }
+
+    if (y != nullptr && y != p) {
+        y->color = p->color;
+        y->key = p->key;
+    }
+    delete p;
+    // при удалении черной вершины могла быть нарушена балансировка
+    if (y != nullptr && y->color == BLACK)
+        removeFix(y);
+}
+void RBTree::removeFix(RBTree::Node *p) {
+    // далее родственные связи относительно p
+    while (p->color == BLACK && p != head) {
+        Node *brother = getBrother(p);
+        if (p->parent->left == p) {
+            if (brother != nullptr && brother->color == RED) {
+                brother->color = BLACK;
+                p->parent->color = RED;
+                rotateLeft(p->parent);
+            }
+            if (brother != nullptr && (brother->left->color == BLACK && brother->right->color == BLACK))             // случай 1: "брат" красный с черными детьми
+                brother->color = RED;
+            else {
+                if (brother->right->color == BLACK) { // случай, рассматриваемый во втором подпункте:
+                    brother->left->color = BLACK;         // "брат" красный с черными правым ребенком
+                    brother->color = RED;
+                    rotateRight(brother);
+                }
+                brother->color = p->parent->color;   // случай, рассматриваемый в последнем подпункте
+                p->parent->color = BLACK;
+                brother->right->color = BLACK;
+                rotateLeft(p->parent);
+                p = head;
+            }
+        }
+        else {// p — правый ребенок
+            // все случаи аналогичны тому, что рассмотрено выше
+            if (brother->color == RED) {
+                brother->color = BLACK;
+                p->parent->color = RED;
+                rotateRight(p->parent);
+            }
+            if (brother != nullptr && (brother->left->color == BLACK && brother->right->color == BLACK))
+                brother->color = RED;
+            else {
+                if (brother->left->color == BLACK) {
+                   brother->right->color = BLACK;
+                   brother->color = RED;
+                   rotateLeft(brother);
+                }
+                brother = p->parent;
+                p->parent->color = BLACK;
+                brother->left->color = BLACK;
+                rotateRight(p->parent);
+                p = head;
+            }
+        }
+        p->color = BLACK;
+        head->color = BLACK;
     }
 }
