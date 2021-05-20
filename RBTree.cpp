@@ -206,10 +206,8 @@ void RBTree::remove(int key) {
         }
     }
 
-    if (y != nullptr && y != p) {
+    if (y != nullptr && y != p)
         y->color = p->color;
-        y->key = p->key;
-    }
     delete p;
     // при удалении черной вершины могла быть нарушена балансировка
     if (y != nullptr && y->color == BLACK)
